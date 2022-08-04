@@ -1,4 +1,3 @@
-from multiprocessing.sharedctypes import Value
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
@@ -453,7 +452,6 @@ class Tracker_Entry():
         self.entry_name.grid_forget()
         self.entry_notes.grid_forget()
         
-
 class Settings(tk.Frame):
     colors = []
 
@@ -494,8 +492,8 @@ class Color_Entry():
         self.color.trace_add("write", self.update_color)
 
     def grid(self, row):
-        self.entry.grid(row=row, column=0, padx=(5,0))
-        self.label.grid(row=row, column=1, padx=(5,1))
+        self.entry.grid(row=row, column=0, padx=(10,0))
+        self.label.grid(row=row, column=1, padx=(3,0))
     
     def update_color(self, *_):
         value = self.color.get()
