@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
@@ -5,6 +6,7 @@ import json
 
 from colours import dark as c
 from tabs import Tabs
+from image_button import ImageButton
 
 class Root(tk.Tk):
 
@@ -77,53 +79,56 @@ class Tracker(tk.Frame):
         self.entries = []
         self.entry_data = []
         self.selected = 0
-        self.var_turn = tk.StringVar(value="Nobody here :(")
         self.round = 1
+
+        self.var_turn = tk.StringVar(value="Nobody here :(")
+        self.var_round = tk.StringVar(value=f"Round {self.round}")
+        self.var_name = tk.StringVar(value="")
+        self.var_init = tk.StringVar(value="0")
+        self.var_prio = tk.StringVar(value="0")
+        self.var_notes = tk.StringVar(value="")
 
         if self.icons == {}:
             self.icons["add"] = tk.PhotoImage(file="icons/ButtonAdd.png")
+            self.icons["add_active"] = tk.PhotoImage(file="icons/ButtonAddActive.png")
             self.icons["prev_round"] = tk.PhotoImage(file="icons/InitiativeButtonPrevRound.png")
+            self.icons["prev_round_active"] = tk.PhotoImage(file="icons/InitiativeButtonPrevRoundActive.png")
             self.icons["prev"] = tk.PhotoImage(file="icons/InitiativeButtonPrev.png")
+            self.icons["prev_active"] = tk.PhotoImage(file="icons/InitiativeButtonPrevActive.png")
             self.icons["next"] = tk.PhotoImage(file="icons/InitiativeButtonNext.png")
+            self.icons["next_active"] = tk.PhotoImage(file="icons/InitiativeButtonNextActive.png")
             self.icons["next_round"] = tk.PhotoImage(file="icons/InitiativeButtonNextRound.png")
+            self.icons["next_round_active"] = tk.PhotoImage(file="icons/InitiativeButtonNextRoundActive.png")
 
         self.round_frame = tk.Frame(self, **c.f0)
         self.entry_frame = tk.Frame(self, **c.f0)
-
-        self.name_var = tk.StringVar(value="")
-        self.init_var = tk.StringVar(value="0")
-        self.prio_var = tk.StringVar(value="0")
-        self.notes_var = tk.StringVar(value="")
 
         tk.Label(self.entry_frame, text="init", font=("Helvetica", 8, "italic"), **c.l0).grid(row=0, column=4, sticky="w")
         tk.Label(self.entry_frame, text="prio", font=("Helvetica", 8, "italic"), **c.l0).grid(row=0, column=5, sticky="w")
         tk.Label(self.entry_frame, text="name", font=("Helvetica", 8, "italic"), **c.l0).grid(row=0, column=7, sticky="w")
         tk.Label(self.entry_frame, text="notes", font=("Helvetica", 8, "italic"), **c.l0).grid(row=0, column=9, sticky="w")
 
-        tk.Entry(self.entry_frame, textvariable=self.init_var, width=4, justify="center", **c.e).grid(row=1, column=4)
-        tk.Entry(self.entry_frame, textvariable=self.prio_var, width=4, justify="center", **c.e).grid(row=1, column=5)
-        tk.Entry(self.entry_frame, textvariable=self.name_var, width=20, **c.e).grid(row=1, column=7)
-        tk.Entry(self.entry_frame, textvariable=self.notes_var, width=50, **c.e).grid(row=1, column=9)
+        tk.Entry(self.entry_frame, textvariable=self.var_init, width=4, justify="center", **c.e).grid(row=1, column=4)
+        tk.Entry(self.entry_frame, textvariable=self.var_prio, width=4, justify="center", **c.e).grid(row=1, column=5)
+        tk.Entry(self.entry_frame, textvariable=self.var_name, width=20, **c.e).grid(row=1, column=7)
+        tk.Entry(self.entry_frame, textvariable=self.var_notes, width=50, **c.e).grid(row=1, column=9)
 
         ttk.Separator(self.entry_frame, orient="horizontal").grid(row=2, columnspan=11, sticky="we", pady=3)
 
-        add_button = tk.Label(self.entry_frame, image=self.icons["add"], highlightthickness=0, borderwidth=0)
-        add_button.bind("<Button-1>", lambda _: self.read_add())
+        add_button = ImageButton(self.entry_frame, self.icons["add"], self.icons["add_active"], lambda *_: self.read_add())
+        add_button.bind("<Button-1>")
         add_button.grid(row=1, column=0)
 
-        prev_round_button = tk.Label(self.round_frame, image=self.icons["prev_round"], highlightthickness=0, borderwidth=0)
-        prev_round_button.bind("<Button-1>", lambda _: self.decrement_round())
+        prev_round_button = ImageButton(self.round_frame, self.icons["prev_round"], self.icons["prev_round_active"], lambda *_: self.decrement_round())
+        prev_button = ImageButton(self.round_frame, self.icons["prev"], self.icons["prev_active"], lambda *_: self.select_previous())
+        label_round = tk.Label(self.round_frame, textvariable=self.var_round, **c.l0)
+        next_button = ImageButton(self.round_frame, self.icons["next"], self.icons["next_active"], lambda *_: self.select_next())
+        next_round_button = ImageButton(self.round_frame, self.icons["next_round"], self.icons["next_round_active"], lambda *_: self.increment_round())
+
         prev_round_button.grid(row=0, column=0)
-        prev_button = tk.Label(self.round_frame, image=self.icons["prev"], highlightthickness=0, borderwidth=0)
-        prev_button.bind("<Button-1>", lambda _: self.select_previous())
         prev_button.grid(row=0, column=1, padx=1)
-        self.label_round = tk.Label(self.round_frame, text=f"Round {self.round}", **c.l0)
-        self.label_round.grid(row=0, column=2)
-        next_button = tk.Label(self.round_frame, image=self.icons["next"], highlightthickness=0, borderwidth=0)
-        next_button.bind("<Button-1>", lambda _: self.select_next())
+        label_round.grid(row=0, column=2)
         next_button.grid(row=0, column=3, padx=1)
-        next_round_button = tk.Label(self.round_frame, image=self.icons["next_round"], highlightthickness=0, borderwidth=0)
-        next_round_button.bind("<Button-1>", lambda _: self.increment_round())
         next_round_button.grid(row=0, column=4)
 
         tk.Label(self.round_frame, textvariable=self.var_turn, **c.l0).grid(row=1, column=0, columnspan=5)
@@ -143,7 +148,7 @@ class Tracker(tk.Frame):
         return data
 
     def read_add(self):
-        self.add(self.name_var.get(), int(self.init_var.get()), int(self.prio_var.get()), self.notes_var.get())
+        self.add(self.var_name.get(), int(self.var_init.get()), int(self.var_prio.get()), self.var_notes.get())
 
     def add(self, name, initiative, priority=0, notes="", color_index=0):
         new_data = Entry_Data(self, name, initiative, priority, color_index, notes)
@@ -215,7 +220,7 @@ class Tracker(tk.Frame):
         self.clear()
         self.set_round(data["round"])
         for entry in data["entries"]:
-            self.add(entry["name"], entry["init"], entry["prio"], entry["color_index"], entry["notes"])
+            self.add(entry["name"], entry["init"], entry["prio"], entry["notes"], entry["color_index"])
         self.update_idletasks()
         self.set_selected(data["selected"])
     
@@ -232,7 +237,7 @@ class Tracker(tk.Frame):
 
     def set_round(self, round):
         self.round = round
-        self.label_round.configure(text=f"Round {self.round}")
+        self.var_round.set(f"Round {self.round}")
     
     def decrement_round(self):
         self.set_round(self.round-1)
@@ -251,7 +256,9 @@ class Tracker(tk.Frame):
                 self.selected = 0
                 self.set_round(self.round+1)
             self.entries[self.selected].select()
-            self.var_turn.set(f"{self.entry_data[self.selected].name}'s turn")
+            name = self.entry_data[self.selected].name
+            name = name if name != "" else "Nameless"
+            self.var_turn.set(f"{name}'s turn")
         else:
             self.selected = 0
             self.var_turn.set("Nobody here :(")
@@ -263,13 +270,13 @@ class Tracker(tk.Frame):
         self.set_selected(self.selected+1)
             
     def move_up(self, index):
-        self.update_entry_data()
+        self.update_data()
         self.entry_data[index-1], self.entry_data[index] = self.entry_data[index], self.entry_data[index-1]
         self.assign_priority(index)
         self.update_entries()
 
     def move_down(self, index):
-        self.update_entry_data()
+        self.update_data()
         self.entry_data[index], self.entry_data[index+1] = self.entry_data[index+1], self.entry_data[index]
         self.assign_priority(index)
         self.update_entries()
@@ -280,10 +287,10 @@ class Tracker(tk.Frame):
 
     def assign_priority(self, index):
         init = self.entry_data[index].initiative
-        prio = 0
         while index+1 < len(self.entry_data) and self.entry_data[index+1].initiative >= init:
-            self.entry_data[index].initiative = init
             index += 1
+            self.entry_data[index].initiative = init
+        prio = 0
         while index >= 0 and self.entry_data[index].initiative <= init:
             self.entry_data[index].initiative = init
             self.entry_data[index].priority = prio
@@ -318,8 +325,11 @@ class Tracker_Entry():
     def __init__(self, parent, tracker, index):
         if self.icons == {}:
             self.icons["up"] = tk.PhotoImage(file="icons/ButtonTop.png")
+            self.icons["up_active"] = tk.PhotoImage(file="icons/ButtonTopActive.png")
             self.icons["down"] = tk.PhotoImage(file="icons/ButtonBot.png")
+            self.icons["down_active"] = tk.PhotoImage(file="icons/ButtonBotActive.png")
             self.icons["remove"] = tk.PhotoImage(file="icons/ButtonDelete.png")
+            self.icons["remove_active"] = tk.PhotoImage(file="icons/ButtonDeleteActive.png")
             self.icons["select_left"] = tk.PhotoImage(file="icons/SelectionButtonLeft.png")
             self.icons["select_right"] = tk.PhotoImage(file="icons/SelectionButtonRight.png")
 
@@ -331,9 +341,9 @@ class Tracker_Entry():
         self.var_name = tk.StringVar()
         self.var_notes = tk.StringVar()
 
-        self.button_remove = tk.Label(parent, image=self.icons["remove"], highlightthickness=0, borderwidth=0)
-        self.button_up = tk.Label(parent, image=self.icons["up"], highlightthickness=0, borderwidth=0)
-        self.button_down = tk.Label(parent, image=self.icons["down"], highlightthickness=0, borderwidth=0)
+        self.button_remove = ImageButton(parent, self.icons["remove"], self.icons["remove_active"], lambda *_: self.tracker.remove(self.index))
+        self.button_up = ImageButton(parent, self.icons["up"], self.icons["up_active"], lambda *_: self.tracker.move_up(self.index))
+        self.button_down = ImageButton(parent, self.icons["down"], self.icons["down_active"], lambda *_: self.tracker.move_down(self.index))
         self.entry_init = tk.Entry(parent, width=4, textvariable=self.var_init, justify="center", **c.e)
         self.entry_prio = tk.Entry(parent, width=4, textvariable=self.var_prio, justify="center", **c.e)
         self.entry_name = tk.Entry(parent, width=20, textvariable=self.var_name, **c.e)
@@ -344,13 +354,10 @@ class Tracker_Entry():
         self.label_select_right = tk.Label(parent, image=self.icons["select_right"], highlightthickness=0, borderwidth=0)
         self.label_select_far_right = tk.Label(parent, image=self.icons["select_right"], highlightthickness=0, borderwidth=0)
 
-        self.button_remove.bind("<Button-1>", lambda _: self.tracker.remove(self.index))
         self.entry_init.bind("<Return>", lambda _: self.tracker.sort())
         self.entry_prio.bind("<Return>", lambda _: self.tracker.sort())
         self.entry_name.bind("<Button-3>", lambda _: self.next_color())
         self.entry_name.bind("<Shift-Button-3>", lambda _: self.previous_color())
-        self.button_up.bind("<Button-1>", lambda _: self.tracker.move_up(self.index))
-        self.button_down.bind("<Button-1>", lambda _: self.tracker.move_down(self.index))
 
     def set_data(self, data: Entry_Data):
         self.data = data
@@ -361,8 +368,14 @@ class Tracker_Entry():
         self.var_notes.set(data.notes)
     
     def update_data(self):
-        self.data.initiative = int(self.var_init.get())
-        self.data.priority = int(self.var_prio.get())
+        try:
+            self.data.initiative = int(self.var_init.get())
+        except ValueError:
+            pass
+        try:
+            self.data.priority = int(self.var_prio.get())
+        except ValueError:
+            pass
         self.data.name = self.var_name.get()
         self.data.notes = self.var_notes.get()
 
