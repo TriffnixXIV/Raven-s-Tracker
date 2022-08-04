@@ -28,6 +28,9 @@ class Root(tk.Tk):
         save_button = tk.Label(tabs.top_frame, text="Save", **c.l)
         save_button.bind("<Button-1>", lambda _: self.save())
         save_button.grid(row=0, column=4)
+        save_button = tk.Label(tabs.top_frame, text="Clear", **c.l)
+        save_button.bind("<Button-1>", lambda _: self.tracker.clear())
+        save_button.grid(row=0, column=5)
 
         tabs.top_frame.grid_columnconfigure(2, weight=1)
 
@@ -74,48 +77,50 @@ class Tracker(tk.Frame):
             self.icons["next"] = tk.PhotoImage(file="icons/InitiativeButtonNext.png")
             self.icons["next_round"] = tk.PhotoImage(file="icons/InitiativeButtonNextRound.png")
 
-        self.top_frame = tk.Frame(self, **c.f0)
-        self.mid_frame = tk.Frame(self, **c.f0)
-        self.bottom_frame = tk.Frame(self, **c.f0)
+        self.round_frame = tk.Frame(self, **c.f0)
+        self.entry_frame = tk.Frame(self, **c.f0)
 
         self.name_var = tk.StringVar(value="")
         self.init_var = tk.StringVar(value="0")
         self.prio_var = tk.StringVar(value="0")
+        self.notes_var = tk.StringVar(value="")
 
-        tk.Entry(self.top_frame, textvariable=self.name_var, **c.e).grid(row=0, column=0)
-        tk.Entry(self.top_frame, textvariable=self.init_var, **c.e).grid(row=0, column=1)
-        tk.Entry(self.top_frame, textvariable=self.prio_var, **c.e).grid(row=0, column=2)
+        tk.Label(self.entry_frame, text="init", font=("Helvetica", 8, "italic"), **c.l0).grid(row=0, column=4, sticky="w")
+        tk.Label(self.entry_frame, text="prio", font=("Helvetica", 8, "italic"), **c.l0).grid(row=0, column=5, sticky="w")
+        tk.Label(self.entry_frame, text="name", font=("Helvetica", 8, "italic"), **c.l0).grid(row=0, column=7, sticky="w")
+        tk.Label(self.entry_frame, text="notes", font=("Helvetica", 8, "italic"), **c.l0).grid(row=0, column=9, sticky="w")
 
-        tk.Label(self.top_frame, text="name", font=("Helvetica", 8, "italic"), **c.l0).grid(row=1, column=0, sticky="w")
-        tk.Label(self.top_frame, text="initiative", font=("Helvetica", 8, "italic"), **c.l0).grid(row=1, column=1, sticky="w")
-        tk.Label(self.top_frame, text="priority", font=("Helvetica", 8, "italic"), **c.l0).grid(row=1, column=2, sticky="w")
+        tk.Entry(self.entry_frame, textvariable=self.init_var, width=4, justify="center", **c.e).grid(row=1, column=4)
+        tk.Entry(self.entry_frame, textvariable=self.prio_var, width=4, justify="center", **c.e).grid(row=1, column=5)
+        tk.Entry(self.entry_frame, textvariable=self.name_var, width=20, **c.e).grid(row=1, column=7)
+        tk.Entry(self.entry_frame, textvariable=self.notes_var, width=50, **c.e).grid(row=1, column=9)
 
-        add_button = tk.Label(self.top_frame, image=self.icons["add"], highlightthickness=0, borderwidth=0)
+        ttk.Separator(self.entry_frame, orient="horizontal").grid(row=2, columnspan=11, sticky="we", pady=3)
+
+        add_button = tk.Label(self.entry_frame, image=self.icons["add"], highlightthickness=0, borderwidth=0)
         add_button.bind("<Button-1>", lambda _: self.read_add())
-        add_button.grid(row=0, column=3)
+        add_button.grid(row=1, column=0)
 
-        prev_round_button = tk.Label(self.mid_frame, image=self.icons["prev_round"], highlightthickness=0, borderwidth=0)
+        prev_round_button = tk.Label(self.round_frame, image=self.icons["prev_round"], highlightthickness=0, borderwidth=0)
         prev_round_button.bind("<Button-1>", lambda _: self.previous_round())
         prev_round_button.grid(row=0, column=0)
-        prev_button = tk.Label(self.mid_frame, image=self.icons["prev"], highlightthickness=0, borderwidth=0)
+        prev_button = tk.Label(self.round_frame, image=self.icons["prev"], highlightthickness=0, borderwidth=0)
         prev_button.bind("<Button-1>", lambda _: self.select_previous())
         prev_button.grid(row=0, column=1, padx=1)
-        self.label_round = tk.Label(self.mid_frame, text=f"Round {self.round}", **c.l0)
+        self.label_round = tk.Label(self.round_frame, text=f"Round {self.round}", **c.l0)
         self.label_round.grid(row=0, column=2)
-        next_button = tk.Label(self.mid_frame, image=self.icons["next"], highlightthickness=0, borderwidth=0)
+        next_button = tk.Label(self.round_frame, image=self.icons["next"], highlightthickness=0, borderwidth=0)
         next_button.bind("<Button-1>", lambda _: self.select_next())
         next_button.grid(row=0, column=3, padx=1)
-        next_round_button = tk.Label(self.mid_frame, image=self.icons["next_round"], highlightthickness=0, borderwidth=0)
+        next_round_button = tk.Label(self.round_frame, image=self.icons["next_round"], highlightthickness=0, borderwidth=0)
         next_round_button.bind("<Button-1>", lambda _: self.next_round())
         next_round_button.grid(row=0, column=4)
 
-        tk.Label(self.mid_frame, textvariable=self.var_turn, **c.l0).grid(row=1, column=0, columnspan=5)
+        tk.Label(self.round_frame, textvariable=self.var_turn, **c.l0).grid(row=1, column=0, columnspan=5)
 
-        self.top_frame.grid(row=0, sticky="we", padx=1, pady=(3,0))
-        ttk.Separator(self, orient="horizontal").grid(row=1, sticky="we", pady=(0,3))
-        self.mid_frame.grid(row=2, padx=1)
-        ttk.Separator(self, orient="horizontal").grid(row=3, sticky="we", pady=(0,3))
-        self.bottom_frame.grid(row=4, sticky="we", padx=1)
+        self.round_frame.grid(row=2, padx=1)
+        ttk.Separator(self, orient="horizontal").grid(row=3, sticky="we")
+        self.entry_frame.grid(row=4, sticky="we", padx=1)
     
     def get_save_data(self):
         self.update_entry_data()
@@ -128,9 +133,9 @@ class Tracker(tk.Frame):
         return data
 
     def read_add(self):
-        self.add(self.name_var.get(), int(self.init_var.get()), int(self.prio_var.get()))
+        self.add(self.name_var.get(), int(self.init_var.get()), int(self.prio_var.get()), self.notes_var.get())
 
-    def add(self, name, initiative, priority, color_index=0, notes=""):
+    def add(self, name, initiative, priority=0, notes="", color_index=0):
         new_data = Entry_Data(self, name, initiative, priority, color_index, notes)
 
         inserted_index = None
@@ -144,8 +149,8 @@ class Tracker(tk.Frame):
             self.entry_data.append(new_data)
         self.assign_priority(inserted_index)
 
-        new_entry = Tracker_Entry(self.bottom_frame, self)
-        new_entry.grid(len(self.entries))
+        new_entry = Tracker_Entry(self.entry_frame, self, len(self.entries))
+        new_entry.grid(len(self.entries)+3)
         self.entries.append(new_entry)
         self.update_entries()
 
@@ -161,15 +166,15 @@ class Tracker(tk.Frame):
         self.set_selected(0)
         self.set_round(1)
 
-    def remove(self, row):
-        if self.selected > row:
+    def remove(self, index):
+        if self.selected > index:
             self.select_previous()
-        if self.selected >= len(self.entries)-1:
+        if self.selected >= len(self.entries)-1 and not self.selected == 0:
             self.select_next()
         self.entries.pop().grid_forget()
-        self.entry_data.pop(row)
-        if row != 0:
-            self.assign_priority(row-1)
+        self.entry_data.pop(index)
+        if index != 0:
+            self.assign_priority(index-1)
         self.update_entries()
         self.update_moves()
 
@@ -232,29 +237,29 @@ class Tracker(tk.Frame):
     def select_next(self):
         self.set_selected(self.selected+1)
             
-    def move_up(self, row):
+    def move_up(self, index):
         self.update_entry_data()
-        self.entry_data[row-1], self.entry_data[row] = self.entry_data[row], self.entry_data[row-1]
-        self.assign_priority(row)
+        self.entry_data[index-1], self.entry_data[index] = self.entry_data[index], self.entry_data[index-1]
+        self.assign_priority(index)
         self.update_entries()
 
-    def move_down(self, row):
+    def move_down(self, index):
         self.update_entry_data()
-        self.entry_data[row], self.entry_data[row+1] = self.entry_data[row+1], self.entry_data[row]
-        self.assign_priority(row)
+        self.entry_data[index], self.entry_data[index+1] = self.entry_data[index+1], self.entry_data[index]
+        self.assign_priority(index)
         self.update_entries()
 
-    def assign_priority(self, row):
-        init = self.entry_data[row].initiative
+    def assign_priority(self, index):
+        init = self.entry_data[index].initiative
         prio = 0
-        while row + 1 < len(self.entry_data) and self.entry_data[row+1].initiative >= init:
-            self.entry_data[row].initiative = init
-            row += 1
-        while row >= 0 and self.entry_data[row].initiative <= init:
-            self.entry_data[row].initiative = init
-            self.entry_data[row].priority = prio
+        while index+1 < len(self.entry_data) and self.entry_data[index+1].initiative >= init:
+            self.entry_data[index].initiative = init
+            index += 1
+        while index >= 0 and self.entry_data[index].initiative <= init:
+            self.entry_data[index].initiative = init
+            self.entry_data[index].priority = prio
             prio += 1
-            row -= 1
+            index -= 1
 
 class Entry_Data():
 
@@ -281,7 +286,7 @@ class Entry_Data():
 class Tracker_Entry():
     icons = {}
 
-    def __init__(self, parent, tracker):
+    def __init__(self, parent, tracker, index):
         if self.icons == {}:
             self.icons["up"] = tk.PhotoImage(file="icons/ButtonTop.png")
             self.icons["down"] = tk.PhotoImage(file="icons/ButtonBot.png")
@@ -290,6 +295,7 @@ class Tracker_Entry():
             self.icons["select_right"] = tk.PhotoImage(file="icons/SelectionButtonRight.png")
 
         self.tracker: Tracker = tracker
+        self.index = index
 
         self.var_init = tk.StringVar()
         self.var_prio = tk.StringVar()
@@ -400,13 +406,13 @@ class Tracker_Entry():
         self.entry_notes.grid_forget()
     
     def remove(self):
-        self.tracker.remove(self.row)
+        self.tracker.remove(self.index)
     
     def move_up(self):
-        self.tracker.move_up(self.row)
+        self.tracker.move_up(self.index)
     
     def move_down(self):
-        self.tracker.move_down(self.row)
+        self.tracker.move_down(self.index)
 
 class Settings(tk.Frame):
     colors = []
